@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BMI Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 420px; margin: 2rem auto; }
+    label, input { display:block; width:100%; margin-bottom:0.5rem; }
+    button { padding: 0.5rem 1rem; }
+    .result { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; background:#f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>BMI Calculator</h1>
+  <form id="bmiForm">
+    <label>
+      Weight (kg)
+      <input type="number" id="weight" step="0.1" min="0" required />
+    </label>
+    <label>
+      Height (cm)
+      <input type="number" id="height" step="0.1" min="0" required />
+    </label>
+    <button type="submit">Calculate</button>
+  </form>
+
+  <div id="output" class="result" style="display:none;"></div>
+
+  <script>
+    const form = document.getElementById('bmiForm');
+    const output = document.getElementById('output');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const weight = document.getElementById('weight').value;
+      const height = document.getElementById('height').value;
+
+      // Send as form URL encoded
+      const body = new URLSearchParams();
+      body.append('weight', weight);
+      body.append('height', height);
+
+      try {
+        const resp = await fetch('http://localhost:8000/bmi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+
+        if (!resp.ok) throw new Error('Server error: ' + resp.status);
+
+        const data = await resp.json();
+        output.style.display = 'block';
+        output.innerHTML = `
+          <strong>BMI:</strong> ${data.bmi.toFixed(2)}<br/>
+          <strong>Category:</strong> ${data.category}
+        `;
+      } catch (err) {
+        output.style.display = 'block';
+        output.innerHTML = '<span style="color:crimson">Error: ' + err.message + '</span>';
+      }
+    });
+  </script>
+</body>
+</html>
